@@ -11,10 +11,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.validation.ConstraintViolationException;
 import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 class CustomerServiceTest {
@@ -27,14 +29,14 @@ class CustomerServiceTest {
     private BillingDetailRepository billingDetailRepository;
 
     private Customer customer1;
-    private Customer customer2;
+
     @BeforeEach
     void setUp() {
         billingDetailRepository.deleteAll();
         customerRepository.deleteAll();
 
         customer1 = customerRepository.save(Customer.builder().firstName("Kelvin").lastName("Okoro").email("kelvin.okoro@gmail.com").build());
-        customer2 = customerRepository.save(Customer.builder().firstName("Kelvin").lastName("Okoro").email("k.okoro@gmail.com").build());
+        Customer customer2 = customerRepository.save(Customer.builder().firstName("Kelvin").lastName("Okoro").email("k.okoro@gmail.com").build());
         customerRepository.save(Customer.builder().firstName("Test1").lastName("Test1").email("test1@gmail.com").build());
         customerRepository.save(Customer.builder().firstName("Test2").lastName("Test2").email("test2@gmail.com").build());
         customerRepository.save(Customer.builder().firstName("Test3").lastName("Test3").email("test3@gmail.com").build());
@@ -62,12 +64,48 @@ class CustomerServiceTest {
 
     @Test
     void save() {
+        CustomerRequest customerRequest = new CustomerRequest();
+        customerRequest.setFirstName("First Name");
+        customerRequest.setLastName("Last Name");
+        customerRequest.setEmail("first@gmail.com");
 
+        // given
+        assertThat(customerRepository.findAll()).hasSize(5);
+
+        // when
+        customerService.save(customerRequest);
+
+        // assert
+        assertThat(customerRepository.findAll()).hasSize(6);
+    }
+
+    @Test
+    void saveThrowsError() {
+        CustomerRequest customerRequest = new CustomerRequest();
+        customerRequest.setFirstName("");
+        customerRequest.setLastName("Last Name");
+        customerRequest.setEmail("first@gmail.com");
+
+        assertThrows(ConstraintViolationException.class, () -> customerService.save(customerRequest));
+    }
+
+    @Test
+    void saveThrowsOnInvalidEmail() {
+        CustomerRequest customerRequest = new CustomerRequest();
+        customerRequest.setFirstName("First Name");
+        customerRequest.setLastName("Last Name");
+        customerRequest.setEmail("email");
+
+        assertThrows(ConstraintViolationException.class, () -> customerService.save(customerRequest));
     }
 
     @Test
     void findById() {
+        ApiResponse apiResponse = customerService.findById(customer1.getId());
 
+        assertThat(apiResponse).isNotNull();
+        assertThat((Customer) apiResponse.getData().get("customer")).isNotNull();
+        assertThat(((Customer) apiResponse.getData().get("customer")).getEmail()).isEqualTo(customer1.getEmail());
     }
 
 
