@@ -2,6 +2,7 @@ package com.example.customerservice.controller;
 
 import com.example.customerservice.dto.ApiResponse;
 import com.example.customerservice.dto.CustomerRequest;
+import com.example.customerservice.model.BillingDetail;
 import com.example.customerservice.model.Customer;
 import com.example.customerservice.service.BillingDetailService;
 import com.example.customerservice.service.CustomerService;
@@ -21,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import javax.validation.ConstraintViolationException;
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -229,12 +231,59 @@ class CustomerControllerTest {
     }
 
     @Test
-    void getCustomerBillingDetails() {
+    void getCustomerBillingDetails() throws Exception {
+        Customer customer1 = Customer
+                .builder()
+                .id(1L)
+                .firstName("First Name")
+                .lastName("Last name")
+                .email("first@gmail.com")
+                .build();
+
+        Customer customer2 = Customer
+                .builder()
+                .firstName("First Name")
+                .lastName("Last name")
+                .email("last@gmail.com")
+                .build();
+
+        BillingDetail billingDetail1 = BillingDetail
+                .builder()
+                .id(1L)
+                .customer(customer1)
+                .accountNumber("1234567890")
+                .tariff(BigDecimal.valueOf(500))
+                .build();
+
+        BillingDetail billingDetail2 = BillingDetail
+                .builder()
+                .id(2L)
+                .customer(customer1)
+                .accountNumber("1234567891")
+                .tariff(BigDecimal.valueOf(500))
+                .build();
+
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setStatus("success");
+        apiResponse.getData().put("Billing Details", List.of(billingDetail1, billingDetail2));
+        apiResponse.getData().put("results", 2);
+        doReturn(apiResponse).when(billingDetailService).findByCustomerId(customer1.getId());
+
+        this.mockMvc.perform(get("/api/v1/customer/1/billings/"))
+                .andDo(print())
+                // test status
+                .andExpect(status().isOk())
+                // test contentType
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                // test returned response
+                .andExpect(jsonPath("$.status", is("success")))
+                .andExpect(jsonPath("$.data[\"Billing Details\"]", hasSize(2)))
+                .andExpect(jsonPath("$.data[\"Billing Details\"][0].id", is(1)))
+                .andExpect(jsonPath("$.data[\"Billing Details\"][0].customer.firstName", is(customer1.getFirstName())))
+                .andExpect(jsonPath("$.data[\"Billing Details\"][1].customer.firstName", is(customer1.getFirstName())));
 
 
     }
 
-    @Test
-    void addBillingToCustomer() {
-    }
+
 }
