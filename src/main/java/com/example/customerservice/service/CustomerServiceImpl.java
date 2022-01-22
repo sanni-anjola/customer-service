@@ -6,7 +6,7 @@ import com.example.customerservice.model.Customer;
 import com.example.customerservice.repository.CustomerRepository;
 import com.example.customerservice.util.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -18,10 +18,11 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
 
     @Override
-    public ApiResponse findAll(Pageable pageable) {
+    public ApiResponse findAll(int page, int size) {
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setStatus("success");
-        apiResponse.getResponse().put("data", customerRepository.findAll(pageable));
+        Pageable pageable = PageRequest.of(page, size);
+        apiResponse.getData().put("customers", customerRepository.findAll(pageable));
         return apiResponse;
     }
 
@@ -31,7 +32,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = optionalCustomer.orElseThrow(() -> new NotFoundException("Customer", "id", String.valueOf(id)));
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setStatus("success");
-        apiResponse.getResponse().put("data", customer);
+        apiResponse.getData().put("customer", customer);
         return apiResponse;
     }
 
@@ -44,7 +45,7 @@ public class CustomerServiceImpl implements CustomerService {
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setStatus("success");
         Customer savedCustomer = customerRepository.save(customer);
-        apiResponse.getResponse().put("data", savedCustomer);
+        apiResponse.getData().put("customer", savedCustomer);
         return apiResponse;
     }
 }

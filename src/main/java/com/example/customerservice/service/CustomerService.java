@@ -2,12 +2,11 @@ package com.example.customerservice.service;
 
 import com.example.customerservice.dto.ApiResponse;
 import com.example.customerservice.dto.CustomerRequest;
-import com.example.customerservice.model.Customer;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 public interface CustomerService {
-    ApiResponse findAll(Pageable pageable);
+    ApiResponse findAll(int page, int size);
     ApiResponse findById(Long id);
     ApiResponse save(CustomerRequest customerRequest);
 }

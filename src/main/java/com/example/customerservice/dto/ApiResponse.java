@@ -9,6 +9,5 @@ import java.util.Map;
 @Data
 public class ApiResponse implements Serializable {
     private String status;
-    private Map<String, Object> response = new HashMap<>();
-
+    private Map<String, Object> data = new HashMap<>();
 }
