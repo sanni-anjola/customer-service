@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import javax.validation.ConstraintViolationException;
 import java.util.List;
@@ -26,6 +27,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -92,10 +94,10 @@ class CustomerControllerTest {
                 .andExpect(jsonPath("$.data.pageNumber", is(1)))
                 .andExpect(jsonPath("$.data.TotalNumberOfCustomers", is(2)))
                 .andExpect(jsonPath("$.data.customers", hasSize(2)))
-                .andExpect(jsonPath("$.data.customers[0].firstName", is("First Name")))
-                .andExpect(jsonPath("$.data.customers[0].email", is("first@gmail.com")))
-                .andExpect(jsonPath("$.data.customers[1].firstName", is("First Name")))
-                .andExpect(jsonPath("$.data.customers[1].email", is("last@gmail.com")));
+                .andExpect(jsonPath("$.data.customers[0].firstName", is(customer1.getFirstName())))
+                .andExpect(jsonPath("$.data.customers[0].email", is(customer1.getEmail())))
+                .andExpect(jsonPath("$.data.customers[1].firstName", is(customer2.getFirstName())))
+                .andExpect(jsonPath("$.data.customers[1].email", is(customer2.getEmail())));
 
 
         doReturn(apiResponse).when(customerService).findAll(1, 5);
@@ -111,10 +113,10 @@ class CustomerControllerTest {
                 .andExpect(jsonPath("$.data.pageNumber", is(1)))
                 .andExpect(jsonPath("$.data.TotalNumberOfCustomers", is(2)))
                 .andExpect(jsonPath("$.data.customers", hasSize(2)))
-                .andExpect(jsonPath("$.data.customers[0].firstName", is("First Name")))
-                .andExpect(jsonPath("$.data.customers[0].email", is("first@gmail.com")))
-                .andExpect(jsonPath("$.data.customers[1].firstName", is("First Name")))
-                .andExpect(jsonPath("$.data.customers[1].email", is("last@gmail.com")));
+                .andExpect(jsonPath("$.data.customers[0].firstName", is(customer1.getFirstName())))
+                .andExpect(jsonPath("$.data.customers[0].email", is(customer1.getEmail())))
+                .andExpect(jsonPath("$.data.customers[1].firstName", is(customer2.getFirstName())))
+                .andExpect(jsonPath("$.data.customers[1].email", is(customer2.getEmail())));
 
     }
 
@@ -161,8 +163,8 @@ class CustomerControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // test returned response
                 .andExpect(jsonPath("$.status", is("success")))
-                .andExpect(jsonPath("$.data.customer.firstName", is("First Name")))
-                .andExpect(jsonPath("$.data.customer.email", is("first@gmail.com")));
+                .andExpect(jsonPath("$.data.customer.firstName", is(customer1.getFirstName())))
+                .andExpect(jsonPath("$.data.customer.email", is(customer1.getEmail())));
     }
 
     @Test
@@ -188,11 +190,48 @@ class CustomerControllerTest {
 
 
     @Test
-    void getCustomer() {
+    void getCustomer() throws Exception {
+        Customer customer1 = Customer
+                .builder()
+                .firstName("First Name")
+                .lastName("Last name")
+                .email("first@gmail.com")
+                .build();
+
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setStatus("success");
+        apiResponse.getData().put("customer",(customer1));
+
+        doReturn(apiResponse).when(customerService).findById(anyLong());
+
+        this.mockMvc.perform(get("/api/v1/1"))
+                .andDo(print())
+                // test status
+                .andExpect(status().isOk())
+                // test contentType
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                // test returned response
+                .andExpect(jsonPath("$.status", is("success")))
+                .andExpect(jsonPath("$.data.customer.email", is(customer1.getEmail())));
+
+    }
+
+    @Test
+    void getCustomerThrowsError() throws Exception {
+
+        doThrow(ConstraintViolationException.class).when(customerService).findById(-1L);
+        this.mockMvc.perform(post("/api/v1/-1"))
+                .andDo(print())
+                // test status
+                .andExpect(status().isBadRequest())
+                // test resolved exception
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof HttpRequestMethodNotSupportedException));
     }
 
     @Test
     void getCustomerBillingDetails() {
+
+
     }
 
     @Test
