@@ -20,13 +20,14 @@ public class BillingDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    private Customer customer;
     @Column(unique = true)
     private String accountNumber;
 
     @JsonSerialize(using = PriceConfig.class)
     private BigDecimal tariff;
+
+    @ManyToOne
+    private Customer customer;
 
     @PrePersist
     public void updateAccountNumber(){

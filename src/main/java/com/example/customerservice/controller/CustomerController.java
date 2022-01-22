@@ -17,14 +17,14 @@ public class CustomerController {
     private final CustomerService customerService;
     private final BillingDetailService billingDetailService;
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ApiResponse getAllCustomer(@RequestParam(defaultValue = "0") int page,
+    public ApiResponse getAllCustomer(@RequestParam(defaultValue = "1") int page,
                                       @RequestParam(defaultValue = "10") int size){
         return customerService.findAll(page, size);
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse saveCustomer(@RequestBody CustomerRequest customerRequest){
         return customerService.save(customerRequest);
@@ -36,7 +36,7 @@ public class CustomerController {
         return customerService.findById(id);
     }
 
-    @GetMapping(value = "/customer/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/customer/{customerId}/billings", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse getCustomerBillingDetails(@PathVariable Long customerId){
         return billingDetailService.findByCustomerId(customerId);

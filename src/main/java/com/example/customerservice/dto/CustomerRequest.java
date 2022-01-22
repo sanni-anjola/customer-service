@@ -5,10 +5,11 @@ import lombok.Data;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 
 @Data
-public class CustomerRequest {
+public class CustomerRequest implements Serializable {
     @NotBlank(message = "First name cannot be blank")
     @NotNull(message = "First name cannot be null")
     private String firstName;
