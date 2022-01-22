@@ -6,6 +6,7 @@ import com.example.customerservice.model.Customer;
 import com.example.customerservice.repository.CustomerRepository;
 import com.example.customerservice.util.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,13 @@ public class CustomerServiceImpl implements CustomerService {
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setStatus("success");
         Pageable pageable = PageRequest.of(page, size);
-        apiResponse.getData().put("customers", customerRepository.findAll(pageable));
+        Page<Customer> customers = customerRepository.findAll(pageable);
+        apiResponse.getData().put("customers", customers.getContent());
+        apiResponse.getData().put("results", customers.getNumberOfElements());
+        apiResponse.getData().put("TotalNumberOfCustomers", customers.getTotalElements());
+        apiResponse.getData().put("pageNumber", customers.getNumber());
+        apiResponse.getData().put("TotalPages", customers.getTotalPages());
+
         return apiResponse;
     }
 
